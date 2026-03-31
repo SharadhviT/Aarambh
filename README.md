@@ -1,10 +1,10 @@
-# Aarambh
+# Aarambh AI+
 
-Teen Emotional Support App built using Streamlit.
+An intelligent emotional support chatbot built using Streamlit.
 
 Features:
+- AI-like chatbot
 - Mood detection
-- Recommendations
-- Mood tracking graph
-- Resources
-- CSV download
+- Emotion intensity scoring
+- Analytics dashboard
+- Self-care suggestions
