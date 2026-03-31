@@ -5,12 +5,12 @@ import plotly.express as px
 from datetime import datetime
 
 # -----------------------------
-# PAGE CONFIG
+# CONFIG
 # -----------------------------
-st.set_page_config(page_title="Aarambh AI", page_icon="💛", layout="wide")
+st.set_page_config(page_title="Aarambh AI+", page_icon="💛", layout="wide")
 
-st.title("💛 Aarambh AI — Emotional Support Chatbot")
-st.write("Talk freely. I'm here for you.")
+st.title("💛 Aarambh AI+ — Intelligent Emotional Support")
+st.markdown("Talk to your AI companion. You're not alone.")
 
 # -----------------------------
 # SESSION STATE
@@ -21,129 +21,128 @@ if "chat" not in st.session_state:
 if "moods" not in st.session_state:
     st.session_state.moods = []
 
+if "scores" not in st.session_state:
+    st.session_state.scores = []
+
 if "time" not in st.session_state:
     st.session_state.time = []
 
 # -----------------------------
-# MOOD DETECTION
+# EMOTION ANALYSIS
 # -----------------------------
-def detect_mood(text):
+def analyze_emotion(text):
     text = text.lower()
-    if any(w in text for w in ["happy", "good", "great", "excited"]):
-        return "happy"
-    elif any(w in text for w in ["sad", "down", "depressed", "cry"]):
-        return "sad"
+    intensity = random.randint(40, 95)
+
+    if any(w in text for w in ["happy", "great", "excited"]):
+        return "happy", intensity
+    elif any(w in text for w in ["sad", "cry", "down"]):
+        return "sad", intensity
     elif any(w in text for w in ["angry", "mad", "frustrated"]):
-        return "angry"
-    elif any(w in text for w in ["anxious", "stress", "nervous", "worried"]):
-        return "anxious"
+        return "angry", intensity
+    elif any(w in text for w in ["anxious", "stress", "worried"]):
+        return "anxious", intensity
     else:
-        return "neutral"
+        return "neutral", intensity
 
 # -----------------------------
-# AI RESPONSE ENGINE
+# SMART RESPONSE ENGINE
 # -----------------------------
-def chatbot_response(user_input, mood):
+def generate_response(user_input, mood, score):
+    
+    if mood == "sad":
+        return f"I’m really sorry you're feeling this way 💛 (Intensity: {score})\nWant to talk more about what’s bothering you?"
 
-    responses = {
-        "happy": [
-            "That’s amazing to hear 😊 What made your day good?",
-            "I love that energy! Tell me more 💛",
-            "Happiness looks great on you!"
-        ],
-        "sad": [
-            "I’m really sorry you’re feeling this way 💛 Want to talk about it?",
-            "It’s okay to feel sad sometimes. I’m here for you.",
-            "You don’t have to go through this alone."
-        ],
-        "angry": [
-            "That sounds frustrating 😡 What happened?",
-            "Take a deep breath. Let’s talk it out.",
-            "I hear you. Anger can be overwhelming."
-        ],
-        "anxious": [
-            "That sounds stressful 😰 Let’s slow things down together.",
-            "Try taking a deep breath with me.",
-            "You’re safe. We can figure this out."
-        ],
-        "neutral": [
-            "I’m here to listen 💛 Tell me more.",
-            "How has your day been so far?",
-            "Anything on your mind?"
-        ]
-    }
+    elif mood == "happy":
+        return f"That’s amazing 😊 (Intensity: {score})\nWhat made you feel this way?"
 
-    return random.choice(responses[mood])
+    elif mood == "angry":
+        return f"That sounds frustrating 😡 (Intensity: {score})\nLet’s slow down and unpack it."
+
+    elif mood == "anxious":
+        return f"I hear you 😰 (Intensity: {score})\nTry taking a deep breath. You're okay."
+
+    else:
+        return f"I’m here for you 💛 (Intensity: {score})\nTell me more."
 
 # -----------------------------
-# CHAT UI
+# CHAT INPUT
 # -----------------------------
-st.header("💬 Chat with Aarambh AI")
+st.header("💬 Chat")
 
-user_input = st.text_input("Type your message:")
+user_input = st.text_input("Type your message")
 
 if st.button("Send"):
     if user_input.strip() == "":
         st.warning("Please type something")
     else:
-        mood = detect_mood(user_input)
-        reply = chatbot_response(user_input, mood)
+        mood, score = analyze_emotion(user_input)
+        reply = generate_response(user_input, mood, score)
 
-        # Save chat
         st.session_state.chat.append(("You", user_input))
         st.session_state.chat.append(("Aarambh", reply))
 
-        # Save mood
         st.session_state.moods.append(mood)
+        st.session_state.scores.append(score)
         st.session_state.time.append(datetime.now())
 
 # -----------------------------
 # DISPLAY CHAT
 # -----------------------------
-for sender, message in st.session_state.chat:
+for sender, msg in st.session_state.chat:
     if sender == "You":
-        st.markdown(f"**🧑 You:** {message}")
+        st.markdown(f"**🧑 You:** {msg}")
     else:
-        st.markdown(f"**💛 Aarambh:** {message}")
+        st.markdown(f"**💛 Aarambh:** {msg}")
 
 # -----------------------------
-# MOOD TRACKER
+# ANALYTICS
 # -----------------------------
-st.header("📊 Mood Tracker")
+st.header("📊 Emotional Analytics")
 
 if st.session_state.moods:
     df = pd.DataFrame({
-        "mood": st.session_state.moods,
-        "time": st.session_state.time
+        "Mood": st.session_state.moods,
+        "Time": st.session_state.time,
+        "Score": st.session_state.scores
     })
 
-    fig = px.bar(df["mood"].value_counts(), title="Mood Frequency")
-    st.plotly_chart(fig)
+    st.subheader("Mood Frequency")
+    st.plotly_chart(px.bar(df["Mood"].value_counts()))
+
+    st.subheader("Emotion Intensity Over Time")
+    st.plotly_chart(px.line(df, x="Time", y="Score"))
+
+    dominant = df["Mood"].value_counts().idxmax()
+    st.success(f"Dominant Emotion: {dominant.upper()}")
 
 else:
-    st.info("No mood data yet.")
+    st.info("Start chatting to see analytics")
 
 # -----------------------------
-# SELF CARE SUGGESTIONS
+# SELF CARE
 # -----------------------------
-st.header("✨ Self-Care Suggestion")
+st.header("✨ Smart Self-Care")
 
-tips = [
-    "Take a deep breath 🌿",
-    "Drink some water 💧",
-    "Talk to a friend 📞",
-    "Go for a short walk 🚶",
-    "Listen to music 🎧",
-    "Write your thoughts ✍️"
-]
+if st.session_state.moods:
+    last_mood = st.session_state.moods[-1]
 
-st.success(random.choice(tips))
+    tips = {
+        "sad": ["Talk to a friend 💛", "Write your thoughts ✍️"],
+        "happy": ["Keep doing what you love 😊", "Share your joy!"],
+        "angry": ["Take deep breaths 🌿", "Go for a walk 🚶"],
+        "anxious": ["Try meditation 🧘", "Slow breathing 🌬️"],
+        "neutral": ["Try something new 🌟", "Listen to music 🎧"]
+    }
+
+    st.success(random.choice(tips[last_mood]))
 
 # -----------------------------
-# CLEAR CHAT
+# CLEAR BUTTON
 # -----------------------------
 if st.button("Clear Chat"):
     st.session_state.chat = []
     st.session_state.moods = []
+    st.session_state.scores = []
     st.session_state.time = []
-    st.success("Chat cleared!")
+    st.success("Reset complete!")
