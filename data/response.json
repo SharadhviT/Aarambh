@@ -1,39 +1,26 @@
-import json
-
-# Define base responses for 20 emotions
-emotions = {
-    "happy": ["Keep smiling! Your positivity is inspiring! 😄", "Today is a beautiful day—enjoy it!"],
-    "sad": ["It’s okay to feel sad. Allow yourself time to heal.", "Take a deep breath. You will get through this."],
-    "stressed": ["Break tasks into small steps—you can do it!", "Pause and take a deep breath."],
-    "anxious": ["Focus on the present moment, not the future.", "Slow breathing helps calm anxious thoughts."],
-    "angry": ["Pause for a moment. Let your anger settle.", "Count to ten before reacting."],
-    "motivated": ["Every step forward counts—keep moving!", "Believe in yourself!"],
-    "lonely": ["It’s okay to feel alone sometimes. Reach out to someone you trust.", "Try connecting with a friend or family member today."],
-    "excited": ["Channel your excitement into something creative!", "Share your joy with someone you care about!"],
-    "calm": ["Maintain this calmness and enjoy the moment.", "Meditate or take a mindful walk to enhance it."],
-    "frustrated": ["Step back and breathe. Things will improve.", "Focus on what you can control."],
-    "bored": ["Try a new activity or hobby to keep your mind engaged.", "Learn something new today!"],
-    "grateful": ["Reflect on your blessings today.", "Share your gratitude with someone."],
-    "confident": ["Trust yourself and your abilities!", "You have the power to succeed!"],
-    "scared": ["It’s okay to feel fear. Face it slowly.", "Talk to someone you trust about it."],
-    "embarrassed": ["Everyone makes mistakes. Learn and move on.", "Take a deep breath, it’s not the end."],
-    "surprised": ["Embrace unexpected moments—they teach us.", "Share your excitement with someone!"],
-    "hopeful": ["Keep looking forward, better days are coming.", "Stay positive and patient."],
-    "tired": ["Take some rest, your body needs it.", "A short break can rejuvenate you."],
-    "overwhelmed": ["Focus on one task at a time.", "Write down your priorities to organize thoughts."],
-    "relaxed": ["Enjoy this peaceful moment.", "Share your calmness with someone else."]
+{
+    "hello": "Hi there! How are you feeling today?",
+    "hi": "Hey! It's good to see you. How are things?",
+    "sad": "I'm here for you. Want to talk about what's making you sad?",
+    "happy": "That's wonderful! Keep smiling :)",
+    "angry": "Take a deep breath. It's okay to feel angry sometimes.",
+    "stressed": "I understand. Let's try to relax together. Breathe in… breathe out…",
+    "anxious": "It's normal to feel anxious. Want me to share a quick calming tip?",
+    "excited": "Yay! Excitement is great! What's making you so thrilled?",
+    "lonely": "I'm here with you. You are never truly alone.",
+    "confused": "Hmm, confusion can be tough. Let's think it through together.",
+    "bored": "Let's find something fun to do or talk about!",
+    "tired": "Rest is important. Make sure you take some time for yourself.",
+    "hopeful": "That's a positive mindset! Keep holding onto hope.",
+    "grateful": "Gratitude is beautiful. What are you thankful for today?",
+    "jealous": "Feeling jealous is normal. Remember to focus on yourself too.",
+    "frustrated": "I hear you. Let's take a moment and try again calmly.",
+    "embarrassed": "Everyone feels that sometimes. Don't be too hard on yourself!",
+    "nervous": "It's okay to be nervous. You can do this!",
+    "overwhelmed": "Take it step by step. You don't have to do everything at once.",
+    "disappointed": "It's okay to feel disappointed. Things will get better.",
+    "relaxed": "Enjoy the calm. It's good to have moments of peace.",
+    "proud": "That's amazing! You should celebrate your achievements.",
+    "curious": "Curiosity is the key to learning! What are you curious about?",
+    "optimistic": "Your positive outlook is inspiring. Keep going!"
 }
-
-# Expand each to 350+ responses
-large_dataset = []
-for emotion, base_responses in emotions.items():
-    for i in range(350):
-        resp = base_responses[i % len(base_responses)]
-        resp = f"{resp} (tip #{i+1})"
-        large_dataset.append({"emotion": emotion, "response": resp})
-
-# Save to JSON
-with open("data/responses.json", "w") as f:
-    json.dump(large_dataset, f, indent=2)
-
-print("responses.json generated with", len(large_dataset), "entries.")
