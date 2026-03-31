@@ -1,50 +1,149 @@
 import streamlit as st
 import pandas as pd
+import random
 import plotly.express as px
-from utils import detect_mood, get_recommendation, get_resources
+from datetime import datetime
 
-st.set_page_config(page_title="Aarambh", page_icon="💛", layout="wide")
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(page_title="Aarambh AI", page_icon="💛", layout="wide")
 
-st.title("💛 Aarambh — Teen Emotional Support")
-st.markdown("Track your mood and get support.")
+st.title("💛 Aarambh AI — Emotional Support Chatbot")
+st.write("Talk freely. I'm here for you.")
 
-# --- Mood Input ---
-st.header("How are you feeling?")
-user_input = st.text_area("Type here")
+# -----------------------------
+# SESSION STATE
+# -----------------------------
+if "chat" not in st.session_state:
+    st.session_state.chat = []
 
-if st.button("Submit"):
+if "moods" not in st.session_state:
+    st.session_state.moods = []
+
+if "time" not in st.session_state:
+    st.session_state.time = []
+
+# -----------------------------
+# MOOD DETECTION
+# -----------------------------
+def detect_mood(text):
+    text = text.lower()
+    if any(w in text for w in ["happy", "good", "great", "excited"]):
+        return "happy"
+    elif any(w in text for w in ["sad", "down", "depressed", "cry"]):
+        return "sad"
+    elif any(w in text for w in ["angry", "mad", "frustrated"]):
+        return "angry"
+    elif any(w in text for w in ["anxious", "stress", "nervous", "worried"]):
+        return "anxious"
+    else:
+        return "neutral"
+
+# -----------------------------
+# AI RESPONSE ENGINE
+# -----------------------------
+def chatbot_response(user_input, mood):
+
+    responses = {
+        "happy": [
+            "That’s amazing to hear 😊 What made your day good?",
+            "I love that energy! Tell me more 💛",
+            "Happiness looks great on you!"
+        ],
+        "sad": [
+            "I’m really sorry you’re feeling this way 💛 Want to talk about it?",
+            "It’s okay to feel sad sometimes. I’m here for you.",
+            "You don’t have to go through this alone."
+        ],
+        "angry": [
+            "That sounds frustrating 😡 What happened?",
+            "Take a deep breath. Let’s talk it out.",
+            "I hear you. Anger can be overwhelming."
+        ],
+        "anxious": [
+            "That sounds stressful 😰 Let’s slow things down together.",
+            "Try taking a deep breath with me.",
+            "You’re safe. We can figure this out."
+        ],
+        "neutral": [
+            "I’m here to listen 💛 Tell me more.",
+            "How has your day been so far?",
+            "Anything on your mind?"
+        ]
+    }
+
+    return random.choice(responses[mood])
+
+# -----------------------------
+# CHAT UI
+# -----------------------------
+st.header("💬 Chat with Aarambh AI")
+
+user_input = st.text_input("Type your message:")
+
+if st.button("Send"):
     if user_input.strip() == "":
-        st.warning("Enter something")
+        st.warning("Please type something")
     else:
         mood = detect_mood(user_input)
-        st.success(f"Mood detected: {mood}")
-        st.info(get_recommendation(mood))
+        reply = chatbot_response(user_input, mood)
 
-        if "history" not in st.session_state:
-            st.session_state.history = []
-        st.session_state.history.append(mood)
+        # Save chat
+        st.session_state.chat.append(("You", user_input))
+        st.session_state.chat.append(("Aarambh", reply))
 
-# --- Graph ---
-st.header("Mood Tracker")
+        # Save mood
+        st.session_state.moods.append(mood)
+        st.session_state.time.append(datetime.now())
 
-if "history" in st.session_state and st.session_state.history:
-    df = pd.DataFrame(st.session_state.history, columns=["mood"])
-    fig = px.bar(df["mood"].value_counts())
+# -----------------------------
+# DISPLAY CHAT
+# -----------------------------
+for sender, message in st.session_state.chat:
+    if sender == "You":
+        st.markdown(f"**🧑 You:** {message}")
+    else:
+        st.markdown(f"**💛 Aarambh:** {message}")
+
+# -----------------------------
+# MOOD TRACKER
+# -----------------------------
+st.header("📊 Mood Tracker")
+
+if st.session_state.moods:
+    df = pd.DataFrame({
+        "mood": st.session_state.moods,
+        "time": st.session_state.time
+    })
+
+    fig = px.bar(df["mood"].value_counts(), title="Mood Frequency")
     st.plotly_chart(fig)
+
 else:
-    st.info("No data yet")
+    st.info("No mood data yet.")
 
-# --- Resources ---
-st.header("Resources")
+# -----------------------------
+# SELF CARE SUGGESTIONS
+# -----------------------------
+st.header("✨ Self-Care Suggestion")
 
-category = st.selectbox("Filter", ["All","helpline","mindfulness","creative","social","education"])
+tips = [
+    "Take a deep breath 🌿",
+    "Drink some water 💧",
+    "Talk to a friend 📞",
+    "Go for a short walk 🚶",
+    "Listen to music 🎧",
+    "Write your thoughts ✍️"
+]
 
-data = get_resources(None if category=="All" else category)
+st.success(random.choice(tips))
 
-for _, row in data.iterrows():
-    st.markdown(f"**{row['name']}** - {row['description']} [Link]({row['link']})")
-
-# --- Download ---
-if "history" in st.session_state:
-    df = pd.DataFrame(st.session_state.history, columns=["mood"])
-    st.download_button("Download CSV", df.to_csv(index=False))
+# -----------------------------
+# CLEAR CHAT
+# -----------------------------
+if st.button("Clear Chat"):
+    st.session_state.chat = []
+    st.session_state.moods = []
+    st.session_state.time = []
+    st.success("Chat cleared!")
