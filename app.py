@@ -1,187 +1,78 @@
 # app.py
 import streamlit as st
 import random
+from textblob import TextBlob
 
-st.set_page_config(page_title="Aarambh - Advanced Emotional Support App", layout="centered")
+st.set_page_config(page_title="Aarambh: Teen Emotional Support", layout="wide")
+st.title("💬 Aarambh: Advanced Emotional Support for Teenagers")
+st.markdown("Type how you're feeling and get guidance to handle your emotions!")
 
-st.title("🌈 Aarambh: Advanced Emotional Support App")
-st.markdown("Enter how you feel and get guidance and techniques to manage your emotions.")
+# -----------------------------
+# Generate 1000+ emotion list
+# -----------------------------
+base_emotions = [
+    "happy", "sad", "angry", "fearful", "anxious", "excited", "bored", "lonely",
+    "jealous", "confident", "nervous", "guilty", "ashamed", "proud", "relieved",
+    "embarrassed", "hopeful", "disappointed", "frustrated", "overwhelmed",
+    "curious", "stressed", "grateful", "insecure", "optimistic", "pessimistic",
+    "confused", "tired", "energetic", "motivated", "resentful", "disgusted",
+    "peaceful", "apathetic", "jealous", "shy", "regretful", "lonely", "trusting"
+]
 
-# ----------------------------
-# 100+ Emotions Dictionary
-# ----------------------------
-EMOTIONS = {
-    "happy": {"responses":["Yay! Feeling happy! 😄","Joy looks great on you! 🌟","I love your cheerful mood! 🎈"],
-              "techniques":["Share your happiness with a friend.","Do something creative or fun.","Write down 3 happy things today."]},
-    "joyful":{"responses":["You're radiating joy! 🥳","Keep that joyful spirit alive! 🌞","Happiness suits you well! ✨"],
-              "techniques":["Celebrate small wins.","Listen to uplifting music.","Spread positivity to others."]},
-    "content":{"responses":["Contentment is beautiful 😌","Enjoy this peaceful feeling 🌸","Cherish the moment 💛"],
-               "techniques":["Reflect on what makes you content","Meditate","Savor simple joys"]},
-    "excited":{"responses":["Wow! You're thrilled! 🎉","Excitement suits you! ⚡","Yay! Pumped about this! 🚀"],
-               "techniques":["Channel excitement into projects","Share your excitement with friends","Write why you feel excited"]},
-    "hopeful":{"responses":["Hope is powerful 🌟","Keep the positive outlook ✨","Your optimism inspires 💛"],
-               "techniques":["Visualize positive outcomes","Write goals and steps","Share your hope with someone"]},
-    "proud":{"responses":["You should feel proud! 🏆","Celebrate your success 🎉","Pride looks great on you 🌟"],
-              "techniques":["Share accomplishments with friends","Set next goals","Reflect on your journey"]},
-    "relieved":{"responses":["Ah, relief! 😌","Glad things eased 🌿","Take a moment to relax 💛"],
-                 "techniques":["Take deep breaths","Acknowledge the relief","Share gratitude"]},
-    "grateful":{"responses":["Gratitude is powerful 💛","Your positivity shines 🌞","Keep being thankful 🌸"],
-                 "techniques":["Write 3 things you are grateful for","Thank someone","Reflect daily"]},
-    "optimistic":{"responses":["Optimism suits you! 🌞","Keep the positive outlook 🌈","Bright days ahead! ✨"],
-                   "techniques":["Focus on solutions","Visualize positive outcomes","Share positivity"]},
-    "motivated":{"responses":["Motivation is flowing! 🚀","Let's achieve together 🌟","Keep going! 💪"],
-                 "techniques":["Set small achievable goals","Visualize success","Reward yourself for progress"]},
-    "confident":{"responses":["Confidence looks great on you! 💪","Keep shining 🌟","You got this! 😎"],
-                  "techniques":["Affirm yourself daily","Take on challenges","Reflect on achievements"]},
-    "creative":{"responses":["Creativity flows! 🎨","Your imagination is amazing 🌈","Keep innovating 💡"],
-                 "techniques":["Draw, write or design","Brainstorm freely","Try new creative hobbies"]},
-    "inspired":{"responses":["Inspiration strikes! 🌟","Let's turn ideas into action 🚀","You are motivated! 💛"],
-                 "techniques":["Write down inspirations","Take immediate action","Share with others"]},
-    "curious":{"responses":["Curiosity is wonderful! 🔍","Keep asking questions 🌟","Explore and discover 🧠"],
-                "techniques":["Research your interest","Ask experts","Experiment safely"]},
-    "amused":{"responses":["Haha, that's funny 😆","Enjoy the moment of laughter 😂","Humor brightens the day! 🌞"],
-               "techniques":["Share the joke","Laugh with friends","Write down funny moments"]},
-    "relaxed":{"responses":["Relaxation is important 😌","Enjoy the calm 🌊","Take deep breaths 🌿"],
-                "techniques":["Meditate","Listen to calming music","Spend time in nature"]},
-    "peaceful":{"responses":["Peace is beautiful 🌸","Enjoy the serenity 🕊️","Stay in this calm 🌿"],
-                 "techniques":["Meditation","Practice mindfulness","Go for a quiet walk"]},
-    "tired":{"responses":["Rest is important 😴","Take it easy 🛌","You deserve a break 🌙"],
-             "techniques":["Take a short nap","Do gentle stretches","Drink water and breathe"]},
-    "sleepy":{"responses":["Time to rest 😴","Close your eyes for a moment 🌙","Recharge your energy 💛"],
-               "techniques":["Nap for 20-30 mins","Deep breathing","Avoid screens before bed"]},
-    "bored":{"responses":["Boredom is normal 😐","Let's find something fun 🎨","Time to explore! 🧩"],
-              "techniques":["Try a hobby","Go for a walk","Learn something new"]},
-    "lonely":{"responses":["You're not alone 💛","Loneliness can be tough 💌","Let's keep each other company 🌼"],
-              "techniques":["Reach out to a friend","Join an interest group","Journal your feelings"]},
-    "sad":{"responses":["It's okay to feel sad 😔","I understand, sadness is human 💙","Feeling down is normal 🌧️"],
-           "techniques":["Talk to someone you trust","Listen to calming music","Write down your feelings"]},
-    "depressed":{"responses":["Depression is heavy 💔","Reach out for help 🕊️","You are not alone 💛"],
-                  "techniques":["Seek professional help","Talk to trusted friends","Practice small self-care steps"]},
-    "heartbroken":{"responses":["Heartbreak hurts 💔","Take time to heal 🕊️","Your feelings are valid 💛"],
-                    "techniques":["Allow yourself to grieve","Talk about it","Engage in comforting activities"]},
-    "disappointed":{"responses":["Disappointment happens 💔","It's okay to feel this 😔","Let's reflect and move forward 🌿"],
-                     "techniques":["Identify lessons","Adjust expectations","Talk to a friend"]},
-    "guilty":{"responses":["Guilt can be heavy 💔","It's okay to feel remorse 🤲","Let's understand your guilt 🕊️"],
-               "techniques":["Acknowledge mistakes","Apologize if needed","Learn and move forward"]},
-    "shame":{"responses":["Shame is a normal emotion 😔","Let's work through it 🪞","You are not alone 💛"],
-              "techniques":["Talk to someone you trust","Practice self-compassion","Write down your thoughts"]},
-    "embarrassed":{"responses":["It's okay, we all feel embarrassed 😳","Take a deep breath 🫂","Let's turn this around 😊"],
-                   "techniques":["Laugh it off","Share with a friend","Reflect on the situation"]},
-    "anxious":{"responses":["I sense your anxiety 😟","Take a moment, breathe 🌿","Let's calm the mind together 💛"],
-                "techniques":["Practice deep breathing","Write down worries and tackle them","Try grounding exercises"]},
-    "nervous":{"responses":["It's okay to feel nervous 😬","Take a deep breath, you got this! 🌱","Let's face it together 💪"],
-               "techniques":["Prepare in advance","Visualize success","Do calming exercises"]},
-    "stressed":{"responses":["Stress is normal 😣","Let's manage it together 🌱","Take a pause, breathe 🧘"],
-                "techniques":["Meditate for 5 mins","Break tasks into smaller parts","Write down priorities"]},
-    "overwhelmed":{"responses":["It's okay to feel overwhelmed 😥","Take one step at a time 🌊","Let's simplify your tasks 📝"],
-                   "techniques":["Prioritize tasks","Take deep breaths","Ask for help if needed"]},
-    "frustrated":{"responses":["I see your frustration 😤","Take a moment, let's ease it 🔥","Let's calm this frustration 🕊️"],
-                   "techniques":["Break the problem into smaller steps","Write your thoughts","Do light exercise"]},
-    "angry":{"responses":["Take a deep breath 😡","Anger is powerful, let's manage it 💥","It's okay to feel frustrated 🧘"],
-             "techniques":["Count to 10 before reacting","Go for a walk to release tension","Do deep breathing exercises"]},
-    "resentful":{"responses":["Resentment can be heavy ⚡","Let's release it 💧","I hear your frustration 🕊️"],
-                  "techniques":["Express feelings safely","Forgive if possible","Focus on yourself"]},
-    "jealous":{"responses":["Jealousy is natural 😏","Let's understand it 💭","Feelings of envy happen to everyone 🌱"],
-                "techniques":["Focus on your strengths","Practice gratitude","Set personal goals"]},
-    "insecure":{"responses":["It's okay to feel insecure 🤗","You are stronger than you think 💪","Let's boost your confidence 🌟"],
-                 "techniques":["Affirm your achievements","Practice positive self-talk","Talk to someone supportive"]},
-    "fearful":{"responses":["Fear is natural 😨","Let's approach it gently 🌱","Courage can grow 🌟"],
-                "techniques":["Identify fear triggers","Take small actions","Talk to someone supportive"]},
-    "scared":{"responses":["Being scared is okay 😱","Take deep breaths 🌿","Let's handle it carefully 🕊️"],
-               "techniques":["Identify the source of fear","Take gradual steps","Seek support"]},
-    "surprised":{"responses":["Surprise! 😲","Unexpected moments happen 🌟","Let's enjoy the moment 🎉"],
-                  "techniques":["Pause and process","Share your thoughts","Reflect on the experience"]},
-    "shocked":{"responses":["Shocking indeed 😱","Take a moment to breathe 🌬️","Let's process together 🕊️"],
-                "techniques":["Ground yourself","Talk it through","Allow emotions to settle"]},
-    "indifferent":{"responses":["Indifference is normal 😐","Sometimes we feel neutral 🌿","Let's explore your thoughts 💭"],
-                    "techniques":["Engage in meaningful activity","Reflect on feelings","Try mindfulness"]},
-    "melancholy":{"responses":["Melancholy happens 🌧️","It's okay to reflect 😔","Take care of yourself 💛"],
-                   "techniques":["Write your thoughts","Listen to soothing music","Talk to a friend"]},
-    "nostalgic":{"responses":["Nostalgia hits 🕰️","Memories are precious 🌸","Enjoy the reflections 🌟"],
-                  "techniques":["Look at old photos","Write memories","Share stories with family"]},
-    "overjoyed":{"responses":["Overjoyed! 😄🎉","Such happiness is contagious 🌟","Let's celebrate 🌈"],
-                  "techniques":["Share joy with friends","Write about your feelings","Do something kind for others"]},
-    "disgusted":{"responses":["Disgust is okay 🤢","Let's explore it calmly 🌿","Feelings are valid 🌼"],
-                  "techniques":["Reflect on why you feel this","Avoid negative stimuli","Discuss feelings safely"]},
-    "prideful":{"responses":["Pride is healthy! 🏅","Celebrate yourself 🌟","You did great 💛"],
-                 "techniques":["Acknowledge achievements","Share with friends","Set next goals"]},
-    "emboldened":{"responses":["Feeling bold! 🦁","Your courage is inspiring 🌟","Step forward with strength 💥"],
-                  "techniques":["Take calculated risks","Face fears","Celebrate small wins"]},
-    "confused":{"responses":["Feeling confused is okay 🤔","Let's find clarity 🕵️","Take a deep breath 🌿"],
-                 "techniques":["Write down what confuses you","Break problems into steps","Seek guidance"]},
-    "lonely_but_strong":{"responses":["Even alone, you are strong 💪","Loneliness can teach resilience 🌟","You can shine independently 🌞"],
-                         "techniques":["Engage in hobbies","Journal your thoughts","Connect with nature"]},
-    "anxious_about_future":{"responses":["The future is uncertain, it's okay 😰","Focus on what you can control 🌱","Breathe and plan 💛"],
-                             "techniques":["Make small achievable goals","Visualize positive outcomes","Talk to someone supportive"]},
-    "resentful_of_others":{"responses":["Resentment is natural, let's process it 🌊","Focus on your growth 🌟","Release what weighs you down 💧"],
-                            "techniques":["Write your feelings","Practice forgiveness","Engage in self-care"]},
-    "ashamed_of_mistakes":{"responses":["Mistakes don't define you 💛","Learn and move forward 🌿","Self-compassion heals 🕊️"],
-                            "techniques":["Acknowledge the mistake","Plan to improve","Talk to someone you trust"]},
-    "anxious_about_exams":{"responses":["Exams are stressful 😟","Let's prepare calmly 🌱","You've got this! 💪"],
-                            "techniques":["Make a revision plan","Take breaks","Practice mindfulness"]},
-    "lonely_at_home":{"responses":["Home alone can feel lonely 🏡","Let's make this peaceful 🌿","You are safe 💛"],
-                        "techniques":["Read or write","Call a friend","Do a creative activity"]},
-    "unmotivated":{"responses":["Motivation can ebb 😐","Let's reignite it 🌟","Small steps matter 💛"],
-                     "techniques":["Set tiny goals","Celebrate progress","Do something enjoyable"]},
-    "curious_about_life":{"responses":["Curiosity is a gift 🔍","Explore new things 🌟","Learn constantly 🧠"],
-                           "techniques":["Read books","Ask questions","Experiment safely"]},
-    "thankful":{"responses":["Gratitude opens hearts 💛","Keep appreciating 🌸","Your positivity grows 🌞"],
-                 "techniques":["Write a gratitude list","Say thanks to someone","Reflect daily"]},
-    "relieved_after_problem":{"responses":["Relief is sweet 😌","Take a moment to enjoy it 🌿","Breathe deeply 💛"],
-                               "techniques":["Acknowledge the relief","Reflect on solution steps","Share gratitude"]},
-    "energized":{"responses":["Feeling pumped! ⚡","Energy is contagious 🌟","Let's take action 🚀"],
-                  "techniques":["Exercise lightly","Tackle tasks","Channel energy creatively"]},
-    "playful":{"responses":["Playfulness is fun 😜","Enjoy the light moments 🌈","Laugh freely 😂"],
-                "techniques":["Play a game","Engage in fun activities","Make someone else smile"]},
-    "romantic":{"responses":["Love is in the air 💖","Cherish these feelings 🌹","Your heart speaks 🌟"],
-                 "techniques":["Express feelings","Write a letter","Spend quality time with loved ones"]},
-    "hopeful_for_love":{"responses":["Love brings hope 💛","Keep your heart open 🌸","Beautiful things await 🌞"],
-                         "techniques":["Express yourself honestly","Focus on self-love","Engage socially"]},
-    "jealous_of_success":{"responses":["Comparison happens 😏","Focus on your path 🌟","You have unique talents 💛"],
-                            "techniques":["Celebrate others","Set personal goals","Practice gratitude"]},
-    "optimistic_about_future":{"responses":["Bright future ahead 🌞","Keep believing 🌟","Your mindset matters 💛"],
-                                "techniques":["Plan actionable steps","Visualize success","Surround with positivity"]},
-    "giddy":{"responses":["Feeling giddy! 😆","Laughs and smiles abound 🌟","Fun times ahead 🎉"],
-              "techniques":["Share joy with friends","Dance or move","Do something spontaneous"]},
-    "proud_of_friends":{"responses":["Pride in others is lovely 💛","Celebrate their achievements 🌟","Spread positivity 🌈"],
-                         "techniques":["Congratulate them","Reflect on teamwork","Get inspired by them"]},
-    "insecure_about_appearance":{"responses":["You're beautiful as you are 🌸","Insecurities are normal 💛","Focus on strengths 🌟"],
-                                  "techniques":["Positive affirmations","Dress comfortably","Engage in self-care"]},
-    "shy":{"responses":["Shyness is okay 😊","Take small steps 🌱","Your voice matters 💛"],
-             "techniques":["Practice speaking slowly","Join small groups","Acknowledge small successes"]},
-    "playfully_mischievous":{"responses":["Mischief in good fun 😏","Enjoy playful moments 🌟","Laugh with friends 😂"],
-                               "techniques":["Play harmless pranks","Share laughter","Respect boundaries"]},
+intensities = ["slightly", "moderately", "very", "extremely", "super", "barely"]
+contexts = ["about school", "about friends", "about family", "on social media",
+            "about exams", "about future", "about relationships", "about self-image"]
 
-}
+emotions_list = []
+while len(emotions_list) < 1000:
+    base = random.choice(base_emotions)
+    intensity = random.choice(intensities)
+    context = random.choice(contexts)
+    emotion = f"{intensity} {base} {context}"
+    if emotion not in emotions_list:
+        emotions_list.append(emotion)
 
-# ----------------------------
-# Function to detect emotion
-# ----------------------------
-def detect_emotion(user_input):
-    user_input = user_input.lower()
-    detected_emotions = []
-    for emotion in EMOTIONS:
-        if emotion in user_input:
-            detected_emotions.append(emotion)
-    return detected_emotions
+# -----------------------------
+# Responses and coping techniques
+# -----------------------------
+coping_techniques = [
+    "Try deep breathing exercises for 5 minutes.",
+    "Write down your thoughts in a journal.",
+    "Take a short walk or do light exercise.",
+    "Listen to calming music.",
+    "Talk to a trusted friend or family member.",
+    "Practice mindfulness or meditation.",
+    "Draw or paint how you feel.",
+    "Do a small act of kindness for someone else.",
+    "Break down your problem into smaller steps.",
+    "Focus on one positive thing about yourself today."
+]
 
-# ----------------------------
-# Main App Logic
-# ----------------------------
-user_input = st.text_area("How are you feeling today? (e.g., happy, sad, anxious, excited, etc.)")
+def get_emotion_response(user_input):
+    blob = TextBlob(user_input)
+    words = blob.words.lower()
+    # Check if any emotion keyword appears in input
+    matched_emotions = [e for e in emotions_list if any(word in e for word in words)]
+    if not matched_emotions:
+        # fallback if nothing matches
+        return "Hmm, I couldn't detect a clear emotion. Can you describe it differently?"
+    
+    # Randomly pick one matched emotion
+    chosen_emotion = random.choice(matched_emotions)
+    
+    # Generate response with coping technique
+    technique = random.choice(coping_techniques)
+    response = f"You seem to be feeling **{chosen_emotion}**.\n\nHere's something that might help: {technique}"
+    return response
+
+# -----------------------------
+# Streamlit Input
+# -----------------------------
+user_input = st.text_area("How are you feeling today?", height=150)
 
 if st.button("Get Support"):
-    if not user_input.strip():
-        st.warning("Please enter your emotions.")
+    if user_input.strip() == "":
+        st.warning("Please enter how you feel.")
     else:
-        emotions_found = detect_emotion(user_input)
-        if emotions_found:
-            st.subheader("💬 Responses")
-            for emotion in emotions_found:
-                response = random.choice(EMOTIONS[emotion]["responses"])
-                st.write(f"**{emotion.capitalize()}:** {response}")
-                
-                technique = random.choice(EMOTIONS[emotion]["techniques"])
-                st.write(f"**Technique:** {technique}\n")
-        else:
-            st.info("Sorry, I couldn't detect a specific emotion. Try mentioning common feelings like happy, sad, anxious, or excited.")
+        response = get_emotion_response(user_input)
+        st.markdown(response)
