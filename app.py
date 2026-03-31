@@ -1081,7 +1081,7 @@ EMOTIONS = {
             "Surround yourself with positivity"
         ]
     }
-
+}
 }
 
 # ----------------------------
