@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 from utils.helpers import load_responses, get_response, detect_emotion, log_mood
-
+import nltk
+nltk.download('punkt') 
 st.set_page_config(page_title="Aarambh - Teen Support", layout="wide")
 st.title("🌱 Aarambh - Emotional Support for Teens")
 st.markdown("Share your feelings and get thoughtful guidance.")
