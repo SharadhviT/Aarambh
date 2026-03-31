@@ -1,40 +1,70 @@
+# app.py
 import streamlit as st
-import pandas as pd
-from utils.helpers import load_responses, get_response, detect_emotion, log_mood
-import nltk
-nltk.download('punkt') 
-st.set_page_config(page_title="Aarambh - Teen Support", layout="wide")
-st.title("🌱 Aarambh - Emotional Support for Teens")
-st.markdown("Share your feelings and get thoughtful guidance.")
+import json
+from textblob import TextBlob
+from datetime import datetime
 
-# Load responses
+# -------------------------------
+# Page Configuration
+# -------------------------------
+st.set_page_config(page_title="Aarambh - Emotional Support", layout="centered")
+st.title("🌸 Aarambh: Your Emotional Support App")
+st.markdown("Talk to me about how you're feeling today!")
+
+# -------------------------------
+# Load Responses
+# -------------------------------
+@st.cache_data
+def load_responses():
+    with open("responses.json", "r", encoding="utf-8") as file:
+        return json.load(file)
+
 responses = load_responses()
 
-# User input
-user_text = st.text_input("How are you feeling today?")
-
-# Auto-detect or manual emotion selection
-auto_detect = st.checkbox("Auto-detect emotion from text", value=True)
-if auto_detect and user_text:
-    emotion = detect_emotion(user_text)
-    st.info(f"Detected Emotion: {emotion}")
-else:
-    emotion = st.selectbox("Select your emotion", list({r['emotion'] for r in responses}))
-
-# Generate response
-if st.button("Get Support"):
-    if not user_text:
-        st.warning("Please write something about your feelings!")
+# -------------------------------
+# Detect Emotion
+# -------------------------------
+def detect_emotion(user_input):
+    user_input_lower = user_input.lower()
+    
+    # 1. Keyword matching
+    for emotion in responses.keys():
+        if emotion in user_input_lower:
+            return emotion
+    
+    # 2. Sentiment analysis fallback
+    polarity = TextBlob(user_input).sentiment.polarity
+    if polarity > 0.2:
+        return "happy"
+    elif polarity < -0.2:
+        return "sad"
     else:
-        response = get_response(emotion, responses)
-        st.success(response)
-        log_mood(emotion, user_text)
+        return "neutral"
 
-# Mood trend visualization
-st.markdown("### Your Mood Trends")
-try:
-    mood_df = pd.read_csv("data/mood_log.csv", names=["date","emotion","input"])
-    mood_counts = mood_df['emotion'].value_counts()
-    st.bar_chart(mood_counts)
-except FileNotFoundError:
-    st.info("No mood data yet. Use the app to log your first entry!")
+# -------------------------------
+# Get Response
+# -------------------------------
+def get_response(user_input):
+    emotion = detect_emotion(user_input)
+    response = responses.get(emotion, "I'm here to listen. Can you tell me more?")
+    return response
+
+# -------------------------------
+# Log Mood (Optional)
+# -------------------------------
+def log_mood(user_input, response):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open("mood_log.txt", "a", encoding="utf-8") as f:
+        f.write(f"{timestamp} | User: {user_input} | Bot: {response}\n")
+
+# -------------------------------
+# Streamlit Chat Interface
+# -------------------------------
+user_input = st.text_input("You:", "")
+
+if user_input:
+    response = get_response(user_input)
+    st.text_area("Aarambh:", value=response, height=100, max_chars=None)
+    
+    # Log mood
+    log_mood(user_input, response)
