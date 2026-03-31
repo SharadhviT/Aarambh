@@ -1,6 +1,8 @@
 import json
 import random
 import pandas as pd
+import nltk
+nltk.download('punkt')
 from textblob import TextBlob
 
 # Load responses
