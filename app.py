@@ -1,4 +1,4 @@
-import streamlit as st
+
 from openai import OpenAI
 import os
 import pandas as pd
@@ -7,7 +7,13 @@ from datetime import datetime
 # ===============================
 # 🔐 API SETUP (SECURE)
 # ===============================
-client = OpenAI(api_key=os.getenv("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"))
+api_key = os.getenv("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")
+
+if not api_key:
+    st.error("❌ API key not found. Please add it in Streamlit Secrets.")
+    st.stop()
+
+client = OpenAI(api_key=api_key)
 
 # ===============================
 # 🎨 PAGE CONFIG
@@ -18,21 +24,13 @@ st.title("🧠 Aarambh: AI Mental Health Intelligence System")
 st.caption("A safe space to talk, reflect, and understand your emotions.")
 
 # ===============================
-# 🧠 MEMORY (CHAT HISTORY)
+# 🧠 INITIAL MEMORY
 # ===============================
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "system",
-            "content": """
-You are a deeply empathetic therapist.
-
-- Speak gently and naturally
-- Reflect emotions before responding
-- Ask meaningful, open-ended questions
-- Never sound robotic
-- Keep responses calm and human-like
-"""
+            "content": "You are a calm, kind, and empathetic therapist. Speak naturally, reflect emotions, and ask thoughtful questions."
         }
     ]
 
@@ -71,9 +69,10 @@ def save_data(mood, text):
 # ===============================
 # 💬 DISPLAY CHAT
 # ===============================
-for msg in st.session_state.messages[1:]:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+for msg in st.session_state.messages:
+    if msg["role"] != "system":
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
 # ===============================
 # 🧠 USER INPUT
@@ -81,21 +80,48 @@ for msg in st.session_state.messages[1:]:
 user_input = st.chat_input("How are you feeling today?")
 
 if user_input:
+    # Detect mood + save
     mood = detect_mood(user_input)
     save_data(mood, user_input)
 
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    # Store user message
+    st.session_state.messages.append({
+        "role": "user",
+        "content": user_input
+    })
 
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=st.session_state.messages
-    )
+    # ===============================
+    # 🧠 SAFE MESSAGE FORMAT (FIX)
+    # ===============================
+    safe_messages = [
+        {"role": m["role"], "content": str(m["content"])}
+        for m in st.session_state.messages
+    ]
 
-    reply = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+    # ===============================
+    # 🤖 AI RESPONSE (SAFE CALL)
+    # ===============================
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=safe_messages
+        )
+
+        reply = response.choices[0].message.content
+
+    except Exception as e:
+        st.error("⚠️ Error communicating with AI.")
+        st.text(str(e))
+        reply = "I'm having trouble responding right now. Please try again."
+
+    # Store AI reply
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": reply
+    })
 
     with st.chat_message("assistant"):
         st.markdown(reply)
@@ -112,7 +138,7 @@ if os.path.exists("mood_log.csv"):
     st.write("### Mood Distribution")
     st.bar_chart(df["mood"].value_counts())
 
-    # 📈 Recent pattern detection
+    # Pattern detection
     recent = df.tail(5)
 
     if len(recent) >= 5:
@@ -124,6 +150,5 @@ if os.path.exists("mood_log.csv"):
             st.warning("⚠️ You've been feeling low lately. Consider reaching out to someone you trust.")
         elif most_common == "Positive":
             st.success("🌟 You've been feeling positive! Keep it up!")
-
 else:
     st.info("Start chatting to generate emotional insights.")
