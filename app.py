@@ -8,7 +8,7 @@ from datetime import datetime
 # 🔐 GEMINI API SETUP
 # ===============================
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-pro")
+model = genai.GenerativeModel("gemini-1.5-flash")  # ✅ FIXED MODEL
 
 # ===============================
 # 🎨 PAGE CONFIG
@@ -99,15 +99,15 @@ if user_input:
     # ===============================
     try:
         # Build conversation context
-        conversation_text = SYSTEM_PROMPT + "\n\n"
+        conversation = SYSTEM_PROMPT + "\n\n"
 
         for msg in st.session_state.messages:
             if msg["role"] == "user":
-                conversation_text += f"User: {msg['content']}\n"
+                conversation += f"User: {msg['content']}\n"
             else:
-                conversation_text += f"Therapist: {msg['content']}\n"
+                conversation += f"Therapist: {msg['content']}\n"
 
-        response = model.generate_content(conversation_text)
+        response = model.generate_content(conversation)
 
         reply = response.text
 
