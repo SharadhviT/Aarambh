@@ -1,12 +1,15 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
 import pandas as pd
 import os
 from datetime import datetime
 
-# ✅ Correct API setup
-api_key = st.secrets["OPENAI_API_KEY"]
-client = OpenAI(api_key=api_key)
+# ===============================
+# 🔐 GEMINI API SETUP
+# ===============================
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-pro")
+
 # ===============================
 # 🎨 PAGE CONFIG
 # ===============================
@@ -19,12 +22,20 @@ st.caption("A safe space to talk, reflect, and understand your emotions.")
 # 🧠 INITIAL MEMORY
 # ===============================
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {
-            "role": "system",
-            "content": "You are a calm, kind, and empathetic therapist. Speak naturally, reflect emotions, and ask thoughtful questions."
-        }
-    ]
+    st.session_state.messages = []
+
+# ===============================
+# 🧠 THERAPIST PROMPT
+# ===============================
+SYSTEM_PROMPT = """
+You are a calm, kind, and empathetic therapist.
+
+- Speak naturally like a human
+- Reflect emotions before responding
+- Ask thoughtful questions
+- Be warm and non-judgmental
+- Keep responses concise
+"""
 
 # ===============================
 # 🧠 EMOTION DETECTION
@@ -62,9 +73,8 @@ def save_data(mood, text):
 # 💬 DISPLAY CHAT
 # ===============================
 for msg in st.session_state.messages:
-    if msg["role"] != "system":
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
 # ===============================
 # 🧠 USER INPUT
@@ -72,11 +82,10 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("How are you feeling today?")
 
 if user_input:
-    # Detect mood + save
     mood = detect_mood(user_input)
     save_data(mood, user_input)
 
-    # Store user message
+    # Save user message
     st.session_state.messages.append({
         "role": "user",
         "content": user_input
@@ -86,30 +95,28 @@ if user_input:
         st.markdown(user_input)
 
     # ===============================
-    # 🧠 SAFE MESSAGE FORMAT (FIX)
-    # ===============================
-    safe_messages = [
-        {"role": m["role"], "content": str(m["content"])}
-        for m in st.session_state.messages
-    ]
-
-    # ===============================
-    # 🤖 AI RESPONSE (SAFE CALL)
+    # 🤖 GEMINI RESPONSE
     # ===============================
     try:
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=safe_messages
-        )
+        # Build conversation context
+        conversation_text = SYSTEM_PROMPT + "\n\n"
 
-        reply = response.choices[0].message.content
+        for msg in st.session_state.messages:
+            if msg["role"] == "user":
+                conversation_text += f"User: {msg['content']}\n"
+            else:
+                conversation_text += f"Therapist: {msg['content']}\n"
+
+        response = model.generate_content(conversation_text)
+
+        reply = response.text
 
     except Exception as e:
         st.error("⚠️ Error communicating with AI.")
         st.text(str(e))
         reply = "I'm having trouble responding right now. Please try again."
 
-    # Store AI reply
+    # Save AI reply
     st.session_state.messages.append({
         "role": "assistant",
         "content": reply
