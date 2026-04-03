@@ -7,9 +7,9 @@ from datetime import datetime
 # ===============================
 # 🔐 API SETUP (SECURE)
 # ===============================
-api_key = os.getenv("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")
+client = OpenAI(api_key=st.secrets["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"])
 client = OpenAI(api_key=api_key)
-st.write("DEBUG → API KEY:", api_key)
+st.write("DEBUG:", st.secrets.get("OPENAI_API_KEY"))
 # ===============================
 # 🎨 PAGE CONFIG
 # ===============================
