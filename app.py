@@ -1,8 +1,9 @@
 import streamlit as st
-from openai import OpenAI
 import os
+from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("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"))
+
 
 st.set_page_config(page_title="Therapist AI", page_icon="🧠")
 
