@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 
 # 🔑 API
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("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"))
 
 st.set_page_config(page_title="Aarambh AI", page_icon="🧠")
 
