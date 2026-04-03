@@ -8,13 +8,8 @@ from datetime import datetime
 # 🔐 API SETUP (SECURE)
 # ===============================
 api_key = os.getenv("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")
-
-if not api_key:
-    st.error("❌ API key not found. Please add it in Streamlit Secrets.")
-    st.stop()
-
+st.write("DEBUG → API KEY:", api_key)
 client = OpenAI(api_key=api_key)
-st.write("API KEY FOUND:", api_key is not None)
 
 # ===============================
 # 🎨 PAGE CONFIG
