@@ -1,112 +1,51 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
-from datetime import datetime
-import google.generativeai as genai
+from openai import OpenAI
+import os
 
-# -----------------------------
-# CONFIG
-# -----------------------------
-st.set_page_config(page_title="Aarambh AI+", page_icon="💛", layout="wide")
+client = OpenAI(api_key=os.getenv("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"))
 
-st.title("💛 Aarambh AI+ — Real Emotional AI Companion (Gemini)")
-st.markdown("Powered by advanced AI for emotional support and analytics.")
+st.set_page_config(page_title="Therapist AI", page_icon="🧠")
 
-# -----------------------------
-# GEMINI SETUP
-# -----------------------------
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")
+st.title("🧠 Therapist AI")
+st.write("I'm here to listen. Take your time.")
 
-# -----------------------------
-# SESSION STATE
-# -----------------------------
+# Memory
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {
+            "role": "system",
+            "content": """
+You are a kind, calm therapist.
 
-if "moods" not in st.session_state:
-    st.session_state.moods = []
+- Be warm and understanding
+- Reflect emotions
+- Ask meaningful questions
+- Keep responses human-like and not robotic
+"""
+        }
+    ]
 
-if "time" not in st.session_state:
-    st.session_state.time = []
+# Display chat
+for msg in st.session_state.messages[1:]:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-# -----------------------------
-# MOOD DETECTION
-# -----------------------------
-def detect_mood(text):
-    text = text.lower()
-    if "happy" in text:
-        return "happy"
-    elif "sad" in text:
-        return "sad"
-    elif "angry" in text:
-        return "angry"
-    elif "anxious" in text or "stress" in text:
-        return "anxious"
-    else:
-        return "neutral"
+# Input
+user_input = st.chat_input("How are you feeling today?")
 
-# -----------------------------
-# CHAT INPUT
-# -----------------------------
-st.header("💬 Chat with Aarambh AI")
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-user_input = st.text_input("Type your message")
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-if st.button("Send"):
-    if user_input.strip() == "":
-        st.warning("Please type something")
-    else:
-        st.session_state.messages.append({"role": "user", "content": user_input})
+    response = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=st.session_state.messages
+    )
 
-        # Build conversation context
-        context = "You are a kind, empathetic emotional support AI for teenagers.\n"
+    reply = response.choices[0].message.content
+    st.session_state.messages.append({"role": "assistant", "content": reply})
 
-        for msg in st.session_state.messages:
-            if msg["role"] == "user":
-                context += f"User: {msg['content']}\n"
-            else:
-                context += f"AI: {msg['content']}\n"
-
-        # Generate response
-        response = model.generate_content(context)
-        reply = response.text
-
-        st.session_state.messages.append({"role": "assistant", "content": reply})
-
-        # Track mood
-        st.session_state.moods.append(detect_mood(user_input))
-        st.session_state.time.append(datetime.now())
-
-# -----------------------------
-# DISPLAY CHAT
-# -----------------------------
-for msg in st.session_state.messages:
-    if msg["role"] == "user":
-        st.markdown(f"**🧑 You:** {msg['content']}")
-    else:
-        st.markdown(f"**💛 Aarambh:** {msg['content']}")
-
-# -----------------------------
-# ANALYTICS
-# -----------------------------
-st.header("📊 Mood Analytics")
-
-if st.session_state.moods:
-    df = pd.DataFrame({
-        "Mood": st.session_state.moods,
-        "Time": st.session_state.time
-    })
-
-    st.plotly_chart(px.bar(df["Mood"].value_counts()))
-else:
-    st.info("Start chatting to see analytics")
-
-# -----------------------------
-# RESET
-# -----------------------------
-if st.button("Reset Chat"):
-    st.session_state.messages = []
-    st.session_state.moods = []
-    st.session_state.time = []
-    st.success("Chat reset!")
+    with st.chat_message("assistant"):
+        st.markdown(reply)
