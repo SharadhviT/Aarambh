@@ -1,15 +1,12 @@
 import streamlit as st
 from openai import OpenAI
-import os
 import pandas as pd
+import os
 from datetime import datetime
 
-# ===============================
-# 🔐 API SETUP (SECURE)
-# ===============================
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# ✅ Correct API setup
+api_key = st.secrets["OPENAI_API_KEY"]
 client = OpenAI(api_key=api_key)
-st.write("DEBUG:", st.secrets.get("OPENAI_API_KEY"))
 # ===============================
 # 🎨 PAGE CONFIG
 # ===============================
