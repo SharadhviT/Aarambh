@@ -8,7 +8,9 @@ from datetime import datetime
 # 🔐 GEMINI API SETUP
 # ===============================
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")  # ✅ FIXED MODEL
+
+# ✅ FINAL MODEL (DO NOT CHANGE)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ===============================
 # 🎨 PAGE CONFIG
@@ -18,8 +20,11 @@ st.set_page_config(page_title="Aarambh AI", page_icon="🧠")
 st.title("🧠 Aarambh: AI Mental Health Intelligence System")
 st.caption("A safe space to talk, reflect, and understand your emotions.")
 
+# Debug (remove later)
+st.write("MODEL LOADED: gemini-1.5-flash")
+
 # ===============================
-# 🧠 INITIAL MEMORY
+# 🧠 MEMORY
 # ===============================
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -109,7 +114,7 @@ if user_input:
 
         response = model.generate_content(conversation)
 
-        reply = response.text
+        reply = response.text if response.text else "I'm here for you. Tell me more."
 
     except Exception as e:
         st.error("⚠️ Error communicating with AI.")
