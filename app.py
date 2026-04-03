@@ -14,6 +14,7 @@ if not api_key:
     st.stop()
 
 client = OpenAI(api_key=api_key)
+st.write("API KEY FOUND:", api_key is not None)
 
 # ===============================
 # 🎨 PAGE CONFIG
