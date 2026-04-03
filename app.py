@@ -4,16 +4,21 @@ import os
 import pandas as pd
 from datetime import datetime
 
-# 🔑 API
-client = OpenAI(api_key=os.getenv("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"))
-
-st.set_page_config(page_title="Aarambh AI", page_icon="🧠")
-
-st.title("🧠 Aarambh: AI Therapist + Mental Health Intelligence")
-st.write("I’m here to listen. Your emotions matter.")
+# ===============================
+# 🔐 API SETUP (SECURE)
+# ===============================
+client = OpenAI(api_key=os.getenv("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"))
 
 # ===============================
-# 🧠 MEMORY
+# 🎨 PAGE CONFIG
+# ===============================
+st.set_page_config(page_title="Aarambh AI", page_icon="🧠")
+
+st.title("🧠 Aarambh: AI Mental Health Intelligence System")
+st.caption("A safe space to talk, reflect, and understand your emotions.")
+
+# ===============================
+# 🧠 MEMORY (CHAT HISTORY)
 # ===============================
 if "messages" not in st.session_state:
     st.session_state.messages = [
@@ -23,9 +28,10 @@ if "messages" not in st.session_state:
 You are a deeply empathetic therapist.
 
 - Speak gently and naturally
-- Reflect emotions
-- Ask meaningful questions
-- Keep responses human-like
+- Reflect emotions before responding
+- Ask meaningful, open-ended questions
+- Never sound robotic
+- Keep responses calm and human-like
 """
         }
     ]
@@ -36,11 +42,11 @@ You are a deeply empathetic therapist.
 def detect_mood(text):
     text = text.lower()
 
-    if any(word in text for word in ["sad", "tired", "exhausted", "low"]):
+    if any(word in text for word in ["sad", "tired", "exhausted", "low", "depressed"]):
         return "Low"
-    elif any(word in text for word in ["anxious", "nervous", "scared", "stress"]):
+    elif any(word in text for word in ["anxious", "nervous", "scared", "stress", "worried"]):
         return "Anxiety"
-    elif any(word in text for word in ["happy", "good", "excited", "calm"]):
+    elif any(word in text for word in ["happy", "good", "excited", "calm", "great"]):
         return "Positive"
     else:
         return "Neutral"
@@ -103,21 +109,21 @@ st.subheader("📊 Emotional Insights")
 if os.path.exists("mood_log.csv"):
     df = pd.read_csv("mood_log.csv")
 
-    st.write("Mood Distribution:")
+    st.write("### Mood Distribution")
     st.bar_chart(df["mood"].value_counts())
 
-    # Pattern Detection
+    # 📈 Recent pattern detection
     recent = df.tail(5)
 
     if len(recent) >= 5:
         most_common = recent["mood"].mode()[0]
 
         if most_common == "Anxiety":
-            st.warning("⚠️ You've been feeling anxious frequently. Try taking breaks and breathing exercises.")
+            st.warning("⚠️ You've been feeling anxious frequently. Try slowing down and taking breaks.")
         elif most_common == "Low":
-            st.warning("⚠️ You've been feeling low lately. Consider talking to someone you trust.")
+            st.warning("⚠️ You've been feeling low lately. Consider reaching out to someone you trust.")
         elif most_common == "Positive":
             st.success("🌟 You've been feeling positive! Keep it up!")
 
 else:
-    st.write("No data yet. Start chatting to see insights.")
+    st.info("Start chatting to generate emotional insights.")
